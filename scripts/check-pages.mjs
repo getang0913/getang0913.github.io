@@ -74,11 +74,26 @@ async function outputFile(url, context) {
 }
 
 const pages = [
-  { route: "/", file: "index.html", markers: [/Ge Tang/, /Three connected lines of inquiry/, /Candidate statement/] },
+  { route: "/", file: "index.html", markers: [/Ge Tang/, /Ph\.D\. Student/, /Instructional Systems Technology/, /I design and study AI-supported learning environments/] },
+  { route: "/research/", file: "research/index.html", markers: [/Three connected lines of inquiry/, /Monitoring and help seeking/, /Control over AI assistance/, /Independent learning outcomes/, /A systematic review of language educators/] },
+  { route: "/teaching/", file: "teaching/index.html", markers: [/Guidance that responds to learners/, /Project Bio\+CS/, /Course and teaching experience details will be added here/] },
+  { route: "/service/", file: "service/index.html", markers: [/Contributing to the IST community/, /GIST professional development/, /IST conference planning/] },
+  { route: "/feedback/", file: "feedback/index.html", markers: [/Perspectives on working and learning together/, /Selected feedback from students, collaborators, and colleagues will be shared here when available/] },
   { route: "/cv/", file: "cv/index.html", markers: [/Education and scholarly work/, /Download CV \(PDF\)/, /Indiana University Bloomington/] },
   { route: "/publications/", file: "publications/index.html", markers: [/Publications/, /A systematic review of language educators/, /Helpful or Harmful\?/] },
   { route: "/projects/", file: "projects/index.html", markers: [/Research in practice/, /Embodied Learning of the Human Circulatory System/, /Learner Control over AI Hints in Mathematics/] },
   { route: "/statement/", file: "statement/index.html", markers: [/Candidate statement/i, /Professional Goals/, /Commitment to Equity and Diversity/, /References/] },
+];
+
+const navigationItems = [
+  ["Candidate statement", "/statement"],
+  ["Research", "/research"],
+  ["Teaching", "/teaching"],
+  ["Service", "/service"],
+  ["Feedback", "/feedback"],
+  ["Publications", "/publications"],
+  ["Projects", "/projects"],
+  ["CV", "/cv"],
 ];
 
 const renderedPages = new Map();
@@ -92,17 +107,45 @@ for (const page of pages) {
   }
   const markup = renderedMarkup(html);
   const text = visibleText(markup);
-  assert.match(markup, /<main\b/i, `${page.file} must contain rendered page content.`);
-  for (const marker of page.markers) assert.match(text, marker, `${page.file} is missing expected visible content: ${marker}`);
+  const main = markup.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
+  assert.ok(main, `${page.file} must contain rendered page content.`);
+  for (const marker of page.markers) assert.match(visibleText(main), marker, `${page.file} is missing expected visible content: ${marker}`);
   assert.doesNotMatch(text, /Your Name|Your University|First draft|Draft placeholder|PDF coming soon|20XX/, `${page.file} contains private information or old placeholders.`);
   assert.doesNotMatch(text, /\b(?:\d{3}[-.\s]){2}\d{4}\b/, `${page.file} contains a phone number.`);
   renderedPages.set(page.route, markup);
+
+  const header = markup.match(/<header\b[^>]*>[\s\S]*?<\/header>/i)?.[0];
+  const navigation = header?.match(/<nav\b[^>]*\bid="primary-navigation"[^>]*>([\s\S]*?)<\/nav>/i)?.[1];
+  assert.ok(navigation, `${page.file} must provide the primary header navigation.`);
+  const navigationLinks = [...navigation.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)].map((match) => ({
+    label: visibleText(match[2]),
+    href: elements(`<a${match[1]}>`, "a")[0]?.attributes.href,
+  }));
+  assert.equal(navigationLinks.length, navigationItems.length, `${page.file} must provide all eight navigation links.`);
+  for (const [label, route] of navigationItems) {
+    const link = navigationLinks.find((item) => item.label === label);
+    assert.ok(link, `${page.file} is missing the ${label} navigation item.`);
+    assert.equal(link.href?.replace(/\/+$/, ""), `${basePath}${route}`, `${page.file}: ${label} must link directly to its independent page.`);
+  }
+
+  if (page.route === "/") {
+    const sections = elements(main, "section");
+    assert.equal(sections.length, 1, "The home page must contain only the profile hero section.");
+    assert.ok(sections[0].attributes.class?.split(/\s+/).includes("hero"), "The home page's only section must be the profile hero.");
+    assert.equal(sections[0].attributes.id, "home", "The profile hero must retain the home anchor.");
+    assert.doesNotMatch(main, /research-card|featured-work|statement-columns|service-grid|project-strip|closing-cta/, "Detailed homepage blocks must be available on their independent pages.");
+    assert.doesNotMatch(visibleText(main), /Three connected lines of inquiry|Monitoring and help seeking|A systematic review of language educators|Helpful or Harmful\?|Course and teaching experience details will be added here|Selected feedback from students|Contributing to the IST community|Designing AI support for understanding and independent learning/, "The home page must omit the detailed research, teaching, service, feedback, publication, and statement text.");
+  }
 
   for (const { tag, attributes } of elements(markup)) {
     for (const attribute of ["src", "href"]) {
       const value = attributes[attribute];
       const url = localUrl(value, page.route);
       if (!url) continue;
+      if (tag === "a" && attribute === "href") {
+        const isHomePath = url.pathname.replace(/\/+$/, "") === basePath;
+        assert.ok(!(isHomePath && /^#(?:research|teaching|service|feedback|statement)$/i.test(url.hash)), `${page.file} contains an obsolete home-section link: ${value}`);
+      }
       if (/(?:^|\/)\_next\//.test(url.pathname) || /\/(?:ge-tang\.jpg|[^/]+\.pdf)$/i.test(url.pathname)) {
         await outputFile(url, `${page.file} <${tag} ${attribute}>`);
         checkedResources += 1;

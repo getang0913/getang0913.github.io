@@ -1477,3 +1477,11 @@ a {
     flex-direction: column;
   }
 }
+
+.detail-section {
+  padding-top: 64px;
+}
+
+.detail-section .section-lede {
+  margin-top: 0;
+}

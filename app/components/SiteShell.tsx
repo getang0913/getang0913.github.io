@@ -6,10 +6,10 @@ import { profile, searchIndex } from "../content";
 
 const navItems = [
   { label: "Candidate statement", href: "/statement" },
-  { label: "Research", href: "/#research" },
-  { label: "Teaching", href: "/#teaching" },
-  { label: "Service", href: "/#service" },
-  { label: "Feedback", href: "/#feedback" },
+  { label: "Research", href: "/research" },
+  { label: "Teaching", href: "/teaching" },
+  { label: "Service", href: "/service" },
+  { label: "Feedback", href: "/feedback" },
 ];
 
 function ThemeToggle() {
