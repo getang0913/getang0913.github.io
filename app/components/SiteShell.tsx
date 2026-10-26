@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { profile, searchIndex } from "../content";
 
 const navItems = [
-  { label: "Statement", href: "/#statement" },
+  { label: "Candidate statement", href: "/statement" },
   { label: "Research", href: "/#research" },
   { label: "Teaching", href: "/#teaching" },
   { label: "Service", href: "/#service" },
