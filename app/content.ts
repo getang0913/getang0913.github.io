@@ -220,10 +220,10 @@ export const searchIndex = [
   },
   {
     title: "Teaching",
-    description: "An approach to teaching shaped by instructional design in Project Bio+CS; course details forthcoming.",
+    description: "Teaching Assistant for EDUC-R521: Fall 2026",
     href: "/teaching",
     category: "Teaching",
-    keywords: "teaching instruction prior knowledge guidance course",
+    keywords: "teaching assistant EDUC-R521 R521 Fall 2026 course TA",
   },
   {
     title: "Feedback",

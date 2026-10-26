@@ -81,7 +81,7 @@ test("renders only the profile hero on the academic portfolio home page", async 
 test("renders all standalone academic pages", async () => {
   for (const [pathname, markers] of [
     ["/research", [/Three connected lines of inquiry/, /Monitoring and help seeking/, /Control over AI assistance/, /Independent learning outcomes/, /A systematic review of language educators/]],
-    ["/teaching", [/Guidance that responds to learners/, /Project Bio\+CS/, /Course and teaching experience details will be added here/]],
+    ["/teaching", [/Teaching Assistant for EDUC-R521: Fall 2026/]],
     ["/service", [/Contributing to the IST community/, /GIST professional development/, /IST conference planning/]],
     ["/feedback", [/Perspectives on working and learning together/, /Selected feedback from students, collaborators, and colleagues will be shared here when available/]],
     ["/publications", [/Publications/, /A systematic review of language educators/, /Helpful or Harmful\?/]],
@@ -96,6 +96,9 @@ test("renders all standalone academic pages", async () => {
     const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
     assert.ok(main, `${pathname} must render its page content.`);
     for (const marker of markers) assert.match(visibleText(main), marker, `${pathname} is missing expected visible content: ${marker}`);
+    if (pathname === "/teaching") {
+      assert.doesNotMatch(visibleText(main), /Guidance that responds to learners|Project Bio\+CS|Course and teaching experience details will be added here/, "The teaching page must omit its old philosophy and forthcoming-course text.");
+    }
   }
 });
 

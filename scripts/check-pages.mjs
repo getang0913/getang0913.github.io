@@ -76,7 +76,7 @@ async function outputFile(url, context) {
 const pages = [
   { route: "/", file: "index.html", markers: [/Ge Tang/, /Ph\.D\. Student/, /Instructional Systems Technology/, /I design and study AI-supported learning environments/] },
   { route: "/research/", file: "research/index.html", markers: [/Three connected lines of inquiry/, /Monitoring and help seeking/, /Control over AI assistance/, /Independent learning outcomes/, /A systematic review of language educators/] },
-  { route: "/teaching/", file: "teaching/index.html", markers: [/Guidance that responds to learners/, /Project Bio\+CS/, /Course and teaching experience details will be added here/] },
+  { route: "/teaching/", file: "teaching/index.html", markers: [/Teaching Assistant for EDUC-R521: Fall 2026/] },
   { route: "/service/", file: "service/index.html", markers: [/Contributing to the IST community/, /GIST professional development/, /IST conference planning/] },
   { route: "/feedback/", file: "feedback/index.html", markers: [/Perspectives on working and learning together/, /Selected feedback from students, collaborators, and colleagues will be shared here when available/] },
   { route: "/cv/", file: "cv/index.html", markers: [/Education and scholarly work/, /Download CV \(PDF\)/, /Indiana University Bloomington/] },
@@ -110,6 +110,9 @@ for (const page of pages) {
   const main = markup.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
   assert.ok(main, `${page.file} must contain rendered page content.`);
   for (const marker of page.markers) assert.match(visibleText(main), marker, `${page.file} is missing expected visible content: ${marker}`);
+  if (page.route === "/teaching/") {
+    assert.doesNotMatch(visibleText(main), /Guidance that responds to learners|Project Bio\+CS|Course and teaching experience details will be added here/, "The teaching page must omit its old philosophy and forthcoming-course text.");
+  }
   assert.doesNotMatch(text, /Your Name|Your University|First draft|Draft placeholder|PDF coming soon|20XX/, `${page.file} contains private information or old placeholders.`);
   assert.doesNotMatch(text, /\b(?:\d{3}[-.\s]){2}\d{4}\b/, `${page.file} contains a phone number.`);
   renderedPages.set(page.route, markup);
